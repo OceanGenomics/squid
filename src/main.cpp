@@ -42,10 +42,12 @@ int main(int argc, char* argv[]){
 		if(Print_Components_Ordering)
 			WriteComponents(Output_Prefix+"_component_pri.txt", Components);
 
-		Components=SegmentGraph.SortComponents(Components);
-		Components=SegmentGraph.MergeSingleton(Components, RefLength);
-		Components=SegmentGraph.SortComponents(Components);
-		Components=SegmentGraph.MergeComponents(Components);
+		if (SegmentGraph.vNodes.size() > 0) {
+			Components=SegmentGraph.SortComponents(Components);
+			Components=SegmentGraph.MergeSingleton(Components, RefLength);
+			Components=SegmentGraph.SortComponents(Components);
+			Components=SegmentGraph.MergeComponents(Components);
+		}
 
 		vector< pair<int, int> > Node_NewChr; Node_NewChr.resize(SegmentGraph.vNodes.size());
 		for(unsigned int i=0; i<Components.size(); i++)

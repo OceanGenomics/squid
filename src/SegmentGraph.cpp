@@ -94,11 +94,14 @@ SegmentGraph_t::SegmentGraph_t(const vector<int>& RefLength, SBamrecord_t& Chimr
 	// TmpWriteBEDPE("tmpedges2_before_filteredges.txt", *this, RefName);
 	FilterEdges(KeepEdge);
 	// TmpWriteBEDPE("tmpedges2_before_compressnode.txt", *this, RefName);
-	CompressNode();
-	FurtherCompressNode();
-	// TmpWriteBEDPE("tmpedges2_before_almostdone.txt", *this, RefName);
-	ConnectedComponent();
-	MultiplyDisEdges();
+
+	if (vNodes.size() > 0) {
+		CompressNode();
+		FurtherCompressNode();
+		// TmpWriteBEDPE("tmpedges2_before_almostdone.txt", *this, RefName);
+		ConnectedComponent();
+		MultiplyDisEdges();
+	}
 	cout<<vNodes.size()<<'\t'<<vEdges.size()<<endl;
 };
 
@@ -732,9 +735,11 @@ void SegmentGraph_t::BuildNode_STAR(const vector<int>& RefLength, SBamrecord_t& 
 		Node_t tmp(tmpNodes.back().Chr, tmpNodes.back().Position+tmpNodes.back().Length, RefLength[tmpNodes.back().Chr]-tmpNodes.back().Position-tmpNodes.back().Length);
 		tmpNodes.push_back(tmp);
 	}
-	for(int chrstart=tmpNodes.back().Chr+1; chrstart<RefLength.size(); chrstart++){
-		Node_t tmp(chrstart, 0, RefLength[chrstart]);
-		tmpNodes.push_back(tmp);
+	if(tmpNodes.size()!=0) {
+		for(int chrstart=tmpNodes.back().Chr+1; chrstart<RefLength.size(); chrstart++){
+			Node_t tmp(chrstart, 0, RefLength[chrstart]);
+			tmpNodes.push_back(tmp);
+		}
 	}
 	vNodes=tmpNodes; tmpNodes.clear();
 	time(&CurrentTime);
@@ -1187,6 +1192,8 @@ vector<int> SegmentGraph_t::LocateRead(int initialguess, ReadRec_t& ReadRec){
 	for(int k=0; k<ReadRec.FirstRead.size(); k++){
 		if(i<0 || i>=vNodes.size())
 			i=initialguess;
+		if (i >= vNodes.size())
+			break;
 		if(!(vNodes[i].Chr==ReadRec.FirstRead[k].RefID && ReadRec.FirstRead[k].RefPos>=vNodes[i].Position-thresh && ReadRec.FirstRead[k].RefPos+ReadRec.FirstRead[k].MatchRef<=vNodes[i].Position+vNodes[i].Length+thresh)){
 			if(vNodes[i].Chr<ReadRec.FirstRead[k].RefID || (vNodes[i].Chr==ReadRec.FirstRead[k].RefID && vNodes[i].Position<=ReadRec.FirstRead[k].RefPos)){
 				for(; i<vNodes.size() && vNodes[i].Chr<=ReadRec.FirstRead[k].RefID; i++)
@@ -1228,6 +1235,8 @@ vector<int> SegmentGraph_t::LocateRead(int initialguess, ReadRec_t& ReadRec){
 	for(int k=0; k<ReadRec.SecondMate.size(); k++){
 		if(i<0 || i>=vNodes.size())
 			i=initialguess;
+		if (i >= vNodes.size())
+			break;
 		if(!(vNodes[i].Chr==ReadRec.SecondMate[k].RefID && ReadRec.SecondMate[k].RefPos>=vNodes[i].Position-thresh && ReadRec.SecondMate[k].RefPos+ReadRec.SecondMate[k].MatchRef<=vNodes[i].Position+vNodes[i].Length+thresh)){
 			if(vNodes[i].Chr<ReadRec.SecondMate[k].RefID || (vNodes[i].Chr==ReadRec.SecondMate[k].RefID && vNodes[i].Position<=ReadRec.SecondMate[k].RefPos)){
 				for(; i<vNodes.size() && vNodes[i].Chr<=ReadRec.SecondMate[k].RefID; i++)
@@ -3233,7 +3242,9 @@ vector< vector<int> > SegmentGraph_t::Ordering(){
 			continue;
 		}
 		//cout<<"component "<<i<<"\t"<<CompNodes.size()<<endl;
-		BestOrders[i]=MincutRecursion(CompNodes, CompEdges);
+		if (CompNodes.size() > 0) {
+			BestOrders[i]=MincutRecursion(CompNodes, CompEdges);
+		}
 	}
 	return BestOrders;
 };
