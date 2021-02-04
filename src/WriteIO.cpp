@@ -35,9 +35,11 @@ void WriteComponents(string outputfile, vector< vector<int> > Components){
 	output<<"# component_id\tnodes\n";
 	for(int i=0; i<Components.size(); i++){
 		output<<i<<'\t';
-		for(int j=0; j<Components[i].size()-1; j++)
+		for(int j=0; j+1<Components[i].size(); j++)
 			output<<Components[i][j]<<",";
-		output<<Components[i][Components[i].size()-1]<<endl;
+		if (Components[i].size() > 0) {
+			output<<Components[i][Components[i].size()-1]<<endl;
+		}
 	}
 	output.close();
 };
